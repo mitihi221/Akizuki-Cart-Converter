@@ -1,0 +1,11 @@
+Variables.CreateNewList List=> List
+Text.Replace Text: $'''<TAB>''' TextToFind: $'''<TAB>''' IsRegEx: True IgnoreCase: False ReplaceWith: $'''\\t''' ActivateEscapeSequences: True Result=> TAB
+WebAutomation.LaunchChrome.AttachToChromeByUrl TabUrl: $'''https://akizukidenshi.com/catalog/cart/cart.aspx''' AttachTimeout: 5 TargetDesktop: $'''{\"DisplayName\":\"ローカル コンピューター\",\"Route\":{\"ServerType\":\"Local\",\"ServerAddress\":\"\"}}''' BrowserInstance=> Browser
+WebAutomation.ExtractData.ExtractTable BrowserInstance: Browser Control: $'''html > body > div > div > div > main > div > div > form > div > div:eq(0) > table > tbody > tr''' ExtractionParameters: {[$'''td:eq(0) > a''', $'''Own Text''', $'''''', $'''Value #1'''], [$'''td:eq(3) > div:eq(0) > input''', $'''Own Text''', $'''''', $'''Value #2'''] } PostProcessData: False TimeoutInSeconds: 60 ExtractedData=> DataFromWebPage
+LOOP FOREACH CurrentItem IN DataFromWebPage
+    Variables.AddItemToList Item: $'''%CurrentItem[0]%%TAB%%CurrentItem[1]%''' List: List
+END
+DateTime.GetCurrentDateTime.Local DateTimeFormat: DateTime.DateTimeFormat.DateAndTime CurrentDateTime=> CurrentDateTime
+Text.ConvertDateTimeToText.FromCustomDateTime DateTime: CurrentDateTime CustomFormat: $'''yyyyMMdd_hhmmss''' Result=> FormattedDateTime
+System.GetEnvironmentVariable.GetEnvironmentVariable Name: $'''USERPROFILE''' Value=> EnvironmentVariableValue
+File.WriteText File: $'''%EnvironmentVariableValue%\\Documents\\akizuki-cart-%FormattedDateTime%.txt''' TextToWrite: List AppendNewLine: True IfFileExists: File.IfFileExists.Overwrite Encoding: File.FileEncoding.UTF8
